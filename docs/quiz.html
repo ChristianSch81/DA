@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Digital Artists - Zukunftsquiz</title>
+  <style>
+    :root{--navy:#08255b;--blue:#1769c2;--gold:#f2a900;--green:#1f8f35;--red:#b93434;--paper:#f6f9fc}
+    *{box-sizing:border-box}
+    body{margin:0;min-height:100vh;font-family:Inter,Segoe UI,Arial,sans-serif;background:linear-gradient(135deg,#08255b,#1769c2);color:#fff;display:grid;place-items:center;padding:24px}
+    main{width:min(980px,100%);background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.25);border-radius:24px;padding:26px;box-shadow:0 28px 90px rgba(0,0,0,.25)}
+    h1{margin:0 0 8px;font-size:clamp(2rem,6vw,4.2rem);line-height:1;color:#fff}
+    .sub{margin:0 0 22px;color:#dceaff;font-size:1.1rem}
+    .top{display:flex;justify-content:space-between;gap:14px;align-items:center;margin-bottom:18px;font-weight:900}
+    .badge{background:var(--gold);color:var(--navy);border-radius:999px;padding:9px 13px}
+    .question{font-size:clamp(1.25rem,3vw,2rem);line-height:1.25;font-weight:900;margin:18px 0 20px}
+    .options{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    button{font:inherit}
+    .option{border:2px solid rgba(255,255,255,.34);background:rgba(255,255,255,.12);color:#fff;border-radius:16px;padding:18px;text-align:left;cursor:pointer;font-weight:800;line-height:1.35;min-height:92px}
+    .option:hover{background:rgba(255,255,255,.2)}
+    .option.correct{background:var(--green);border-color:#76e18b}
+    .option.wrong{background:var(--red);border-color:#ffb2b2}
+    .feedback{min-height:32px;margin:18px 0 0;font-weight:900;font-size:1.1rem}
+    .finale{grid-column:1/-1;background:linear-gradient(135deg,var(--gold),#ffe38f);color:var(--navy);border-radius:18px;padding:30px;font-size:clamp(1.6rem,6vw,3rem);line-height:1.12;font-weight:950;text-align:center;box-shadow:0 18px 42px rgba(0,0,0,.2)}
+    .finale small{display:block;margin-top:14px;font-size:1rem;line-height:1.35;font-weight:850;color:#27415f}
+    .quiz-start{display:grid;gap:14px;text-align:center;padding:12px 0}
+    .quiz-start b{color:var(--gold);font-size:clamp(1.7rem,5vw,2.8rem);display:block;margin-bottom:6px}
+    .quiz-start p{margin:0;color:#dce6f1;font-weight:750;line-height:1.45;font-size:1.1rem}
+    .actions{display:flex;gap:12px;align-items:center;justify-content:space-between;margin-top:18px;flex-wrap:wrap}
+    .next,.reset{border:0;border-radius:13px;padding:13px 16px;font-weight:900;cursor:pointer}
+    .next{background:var(--gold);color:var(--navy)}
+    .reset{background:rgba(255,255,255,.14);color:#fff;border:1px solid rgba(255,255,255,.3)}
+    .score{font-weight:900;color:#fff}
+    @media(max-width:700px){body{padding:12px}main{padding:18px}.options{grid-template-columns:1fr}.option{min-height:auto}}
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Zukunftsquiz</h1>
+    <p class="sub">Finde zu jedem Zukunftsthema ein konkretes Problem, das Menschen betreffen könnte.</p>
+    <div class="top"><span>Millionenfrage der Zukunft</span><span class="badge" id="quizCount">Willkommen</span></div>
+    <div class="question" id="quizQuestion"></div>
+    <div class="options" id="quizOptions"></div>
+    <div class="feedback" id="quizFeedback"></div>
+    <div class="actions"><div><button class="next" id="quizNext">Nächste Frage</button> <button class="reset" id="quizReset">Neu starten</button></div><span class="score" id="quizScore"></span></div>
+  </main>
+  <script>
+    const quizData=[
+      {topic:'Schule',q:'Welches Zukunftsproblem könnte Schule besonders beschäftigen?',a:['Wie lernen Menschen fair, wenn KI sehr unterschiedlich genutzt wird?','Welche Kreidefarbe ist im Jahr 2050 am beliebtesten?','Wie viele Pausen braucht ein Roboter?','Warum sind Klassenzimmer immer rechteckig?'],c:0},
+      {topic:'Mobilität',q:'Welches konkrete Problem passt zum Zukunftsthema Mobilität?',a:['Wie kommen Menschen ohne Auto zuverlässig zum Arzt, zur Arbeit oder zu Freunden?','Welche Farbe haben fliegende Autos am häufigsten?','Warum heißen Fahrräder Fahrräder?','Wie viele Räder darf ein Bus maximal haben?'],c:0},
+      {topic:'Wohnen',q:'Welche Herausforderung könnte Wohnen in der Zukunft prägen?',a:['Wie bleibt Wohnraum bezahlbar, wenn Städte wachsen und Energie teuer wird?','Welche Sofafarbe ist am gemütlichsten?','Warum haben Häuser Türen?','Wie viele Zimmer braucht ein Hologramm?'],c:0},
+      {topic:'Gesundheit',q:'Welches Problem gehört zum Zukunftsthema Gesundheit?',a:['Wie bekommen alle Menschen gute medizinische Hilfe, auch wenn Personal fehlt?','Wie schmeckt Medizin besser als Süßigkeiten?','Welche Pflasterform sieht am besten aus?','Warum schlafen Krankenhäuser nachts nicht?'],c:0},
+      {topic:'Umwelt',q:'Welche Zukunftsfrage passt zum Thema Umwelt?',a:['Wie können Städte kühler werden, wenn Hitzewellen häufiger auftreten?','Welche Wolke sieht am schönsten aus?','Wie nennt man einen sehr kleinen Wald?','Warum ist Gras grün?'],c:0},
+      {topic:'Arbeit',q:'Welches Problem könnte die Arbeitswelt der Zukunft beschäftigen?',a:['Welche Aufgaben übernehmen Maschinen, und was bleibt sinnvolle Arbeit für Menschen?','Welche Tastatur klingt am besten?','Warum gibt es Montage?','Wie viele Meetings passen in einen Tag?'],c:0},
+      {topic:'KI',q:'Welche Herausforderung passt zum Thema künstliche Intelligenz?',a:['Wie erkennt man, ob eine KI-Information stimmt oder unfair ist?','Welche Stimme klingt am lustigsten?','Warum blinkt ein Computer manchmal?','Wie gibt man einem Chatbot einen Spitznamen?'],c:0},
+      {topic:'Ernährung',q:'Welches konkrete Problem passt zum Zukunftsthema Ernährung?',a:['Wie können alle gesund essen, obwohl Klima, Preise und Transport schwieriger werden?','Welche Pizzaform ist am modernsten?','Warum macht Essen satt?','Wie lang darf eine Nudel sein?'],c:0},
+      {topic:'Freizeit',q:'Welche Zukunftsfrage passt zum Thema Freizeit?',a:['Wie bleibt echte Begegnung möglich, wenn Freizeit immer digitaler wird?','Welches Spielzeug hat die schönste Verpackung?','Warum macht Spaß Spaß?','Wie viele Hobbys passen in eine App?'],c:0},
+      {topic:'Sicherheit',q:'Welches Problem könnte Sicherheit in Zukunft bedeuten?',a:['Wie schützt man Menschen und Daten, ohne alles zu überwachen?','Welche Uniformfarbe wirkt am freundlichsten?','Warum piept ein Alarm?','Wie schwer ist ein Passwort?'],c:0},
+      {topic:'Zusammenleben',q:'Welche Herausforderung gehört zum Zukunftsthema Zusammenleben?',a:['Wie können unterschiedliche Menschen gut miteinander leben, wenn Gesellschaften vielfältiger werden?','Welche Nachbarschaft hat die besten Klingeln?','Warum grüßt man sich?','Wie laut darf Zukunftsmusik sein?'],c:0},
+      {topic:'Medien',q:'Welches Problem passt zum Zukunftsthema Medien?',a:['Wie unterscheiden Menschen echte Nachrichten von Fakes, Bildern und KI-Inhalten?','Welche Schriftart liest sich im Weltall gut?','Warum gibt es Fernbedienungen?','Wie viele Likes sind schwer?'],c:0}
+    ];
+    let quizIndex=0,quizScoreValue=0,quizAnswered=false;
+    function hideQuizActions(hidden){document.querySelector('.actions').style.display=hidden?'none':'flex'}
+    function renderQuizStart(){const q=document.getElementById('quizQuestion'),opts=document.getElementById('quizOptions'),fb=document.getElementById('quizFeedback'),count=document.getElementById('quizCount'),score=document.getElementById('quizScore');quizIndex=0;quizScoreValue=0;quizAnswered=false;count.textContent='12 Fragen';q.innerHTML='<div class="quiz-start"><b>Millionenfrage der Zukunft</b><p>Teste dein Gespür für echte Zukunftsprobleme. Wähle aus vier Antworten die eine aus, die ein konkretes Problem für Menschen beschreibt.</p></div>';opts.innerHTML='<button class="option" id="quizStartBtn" style="grid-column:1/-1;text-align:center;font-size:1.15rem;padding:18px;min-height:auto;">Quiz starten</button>';fb.textContent='';score.textContent='';hideQuizActions(true);document.getElementById('quizStartBtn').onclick=()=>renderQuiz()}
+    function renderQuiz(){const item=quizData[quizIndex],q=document.getElementById('quizQuestion'),opts=document.getElementById('quizOptions'),fb=document.getElementById('quizFeedback'),count=document.getElementById('quizCount'),score=document.getElementById('quizScore');quizAnswered=false;hideQuizActions(false);q.textContent=`${item.topic}: ${item.q}`;count.textContent=`Frage ${quizIndex+1}/12`;score.textContent=`Punkte: ${quizScoreValue}`;fb.textContent='';opts.innerHTML='';item.a.map((answer,i)=>({answer,correct:i===item.c})).sort(()=>Math.random()-.5).forEach(choice=>{const b=document.createElement('button');b.className='option';b.textContent=choice.answer;b.onclick=()=>{if(quizAnswered)return;quizAnswered=true;opts.querySelectorAll('button').forEach(btn=>btn.classList.toggle('correct',btn.textContent===item.a[item.c]));if(!choice.correct)b.classList.add('wrong');if(choice.correct){quizScoreValue++;fb.textContent='Richtig. Das ist ein echtes Zukunftsproblem.'}else fb.textContent='Noch nicht. Gesucht war ein konkretes Problem für Menschen.';score.textContent=`Punkte: ${quizScoreValue}`};opts.append(b)})}
+    function renderQuizEnd(){const q=document.getElementById('quizQuestion'),opts=document.getElementById('quizOptions'),fb=document.getElementById('quizFeedback'),count=document.getElementById('quizCount'),score=document.getElementById('quizScore');count.textContent='Quiz geschafft';q.textContent='Finale Frage an dein Zukunfts-Ich:';hideQuizActions(true);opts.innerHTML='<div class="finale">„Genug geraten. Jetzt braucht die Zukunft einen Plan mit Hirn.“<small>Such dir nun ein Thema, bei dem Menschen wirklich ein Problem haben – und formuliere daraus deine Zukunftsfrage.</small></div><button class="option" id="quizBackToStart" style="grid-column:1/-1;text-align:center;font-size:1.1rem;padding:16px;margin-top:12px;background:var(--gold);color:var(--navy);border:none;font-weight:900;min-height:auto;">Zurück zum Start</button>';fb.textContent='';score.textContent=`Endstand: ${quizScoreValue}/12`;document.getElementById('quizBackToStart').onclick=()=>renderQuizStart()}
+    document.getElementById('quizNext').addEventListener('click',()=>{if(quizIndex>=quizData.length-1){renderQuizEnd();return}quizIndex++;renderQuiz()});
+    document.getElementById('quizReset').addEventListener('click',()=>renderQuizStart());
+    renderQuizStart();
+  </script>
+</body>
+</html>

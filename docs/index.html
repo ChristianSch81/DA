@@ -1,0 +1,932 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>Digital Artists – Montag</title>
+  <style>
+    :root {
+      --navy:#08255b; --blue:#1769c2; --teal:#078c92; --gold:#f2a900;
+      --orange:#ed6a00; --ink:#12213d; --muted:#62708a; --paper:#f6f9fc;
+      --line:#dce6f1; --card:#fff; --shadow:0 18px 50px rgba(8,37,91,.12);
+      --radius: 18px; --radius-sm: 14px;
+    }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    @media (prefers-reduced-motion: reduce){
+      html{scroll-behavior:auto}
+      *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+    }
+    body{margin:0;font-family:Inter,Segoe UI,Arial,sans-serif;color:var(--ink);background:var(--paper);overflow-x:hidden;line-height:1.55}
+    button,a{font:inherit;touch-action:manipulation;-webkit-tap-highlight-color:rgba(0,0,0,.06)}
+    img{max-width:100%;display:block}
+
+    .topbar{position:fixed;inset:0 0 auto 0;height:68px;background:rgba(255,255,255,.96);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--line);z-index:20;display:flex;align-items:center;gap:18px;padding:0 3vw;transition:box-shadow .2s}
+    .brand{font-weight:900;color:var(--navy);letter-spacing:.02em;white-space:nowrap;font-size:clamp(.92rem,1.4vw,1.05rem)}.brand span{color:var(--teal)}
+    .progress-wrap{flex:1;height:8px;background:#e5edf6;border-radius:999px;overflow:hidden}.progress{height:100%;width:0;background:linear-gradient(90deg,var(--gold),var(--orange),var(--teal));transition:width .25s}
+    .menu-btn{border:0;background:var(--navy);color:#fff;border-radius:12px;padding:12px 16px;cursor:pointer;font-weight:850;min-height:44px;font-size:16px;transition:filter .15s}.menu-btn:active{filter:brightness(.9)}
+
+    /* Punkte-Navigation komplett ausblenden */
+    .side{display:none !important}
+    .dot{display:none}
+
+    /* Neuer Next-Pfeil unten rechts */
+    .next-arrow{
+      position:fixed;
+      right:24px;
+      bottom:24px;
+      z-index:25;
+      width:52px;
+      height:52px;
+      border-radius:50%;
+      background:var(--navy);
+      color:#fff;
+      border:2px solid rgba(255,255,255,.35);
+      font-size:1.6rem;
+      font-weight:900;
+      cursor:pointer;
+      display:grid;
+      place-items:center;
+      box-shadow:0 12px 28px rgba(8,37,91,.22);
+      transition:transform .15s, background .2s, box-shadow .2s;
+      line-height:1;
+    }
+    .next-arrow:hover{
+      transform:translateY(-3px);
+      background:var(--blue);
+      box-shadow:0 16px 34px rgba(8,37,91,.28);
+    }
+    .next-arrow:active{
+      transform:translateY(0);
+    }
+
+    main{position:relative}
+    section{min-height:100vh;padding:96px 6vw 64px;display:grid;align-content:center;position:relative;overflow:hidden;opacity:0;transform:translateY(22px);transition:opacity .6s ease,transform .55s ease}
+    section.visible{opacity:1;transform:translateY(0)}
+    section:after{content:"";position:absolute;width:320px;height:320px;border-radius:50%;background:radial-gradient(circle,rgba(23,105,194,.10),transparent 70%);right:-100px;bottom:-120px;pointer-events:none}
+
+    #start{background:linear-gradient(90deg,rgba(3,18,48,.9) 0%,rgba(3,18,48,.72) 48%,rgba(3,18,48,.25) 100%),url("assets/start-hintergrund.webp") center/cover no-repeat;color:#fff}
+    #start:after{display:none}
+    #start h1{color:#fff;text-shadow:0 3px 22px rgba(0,0,0,.28)}
+    #start .project-title{font-size:clamp(1.5rem,2.8vw,2.4rem);font-weight:950;letter-spacing:.08em;text-transform:uppercase;color:#78e8e2;margin:0 0 14px;text-shadow:0 3px 18px rgba(0,0,0,.32)}
+    #start .lead{color:#eef5ff;text-shadow:0 2px 12px rgba(0,0,0,.3);max-width:80ch}
+    #start .eyebrow{color:#78e8e2}
+    #start .pill{background:rgba(255,255,255,.92);border-color:rgba(255,255,255,.45);color:var(--navy)}
+    .eyebrow{font-size:.86rem;text-transform:uppercase;letter-spacing:.12em;color:var(--teal);font-weight:900;margin-bottom:12px}
+    h1{font-size:clamp(2.6rem,6vw,5rem);line-height:.98;margin:0;letter-spacing:-0.03em;color:var(--navy);max-width:1100px}
+    h2{font-size:clamp(2rem,4vw,3.8rem);line-height:1.05;margin:0 0 18px;color:var(--navy);letter-spacing:-0.02em}
+    h3{font-size:1.15rem;margin:0 0 8px;color:var(--navy)}
+    .lead{font-size:clamp(1.1rem,1.8vw,1.55rem);line-height:1.55;max-width:78ch;color:#334669}
+    .hero-meta{display:flex;flex-wrap:wrap;gap:12px;margin-top:24px}
+    .pill{padding:10px 14px;border-radius:999px;background:#fff;border:1px solid var(--line);box-shadow:0 8px 24px rgba(8,37,91,.07);font-weight:750;font-size:.95rem}
+
+    .hero-actions,.nav-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:24px}
+    .btn{border:0;border-radius:13px;padding:13px 18px;font-weight:850;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:8px;min-height:44px;transition:filter .15s,transform .1s}
+    .btn:active{transform:translateY(1px)}
+    .primary{background:var(--navy);color:#fff}.secondary{background:#fff;color:var(--navy);border:1px solid var(--line)}
+
+    .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:24px;align-items:start}
+    .content{grid-column:span 5}
+    .visual{grid-column:span 7}
+    .visual img{width:100%;max-height:60vh;object-fit:contain;background:#fff;border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+    .zoom-visual{display:grid;place-items:center;overflow:hidden;background:#fff;border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);min-height:420px;position:relative}
+    .zoom-visual.enlarged{position:fixed;inset:92px 5vw 52px;z-index:30;padding:18px;background:rgba(255,255,255,.98);border-color:var(--blue);box-shadow:0 30px 90px rgba(8,37,91,.34)}
+    .zoom-visual img{display:block;border:0;border-radius:0;box-shadow:none;transition:opacity .25s ease,transform .3s ease;cursor:zoom-in}
+    .zoom-visual.enlarged img{width:100%;height:100%;max-height:none;object-fit:contain;cursor:zoom-out}
+    .zoom-visual img.focused{width:100%;max-height:60vh;object-fit:contain;transform:scale(1.01)}
+    .zoom-visual.enlarged img.focused{max-height:none;transform:none}
+    .click-zoom{cursor:zoom-in}
+    .visual.image-enlarged{position:fixed;inset:86px 5vw 48px;z-index:30;display:grid;place-items:center;padding:18px;background:rgba(255,255,255,.98);border:1px solid var(--blue);border-radius:var(--radius);box-shadow:0 30px 90px rgba(8,37,91,.34);opacity:0;visibility:hidden;transition:opacity .25s,visibility .25s;pointer-events:none}
+    .visual.image-enlarged.active{opacity:1;visibility:visible;pointer-events:auto}
+    .visual.image-enlarged img{width:100%;height:100%;max-height:none;object-fit:contain;cursor:zoom-out}
+    #themen .visual img{max-height:74vh}
+
+    .video-frame{margin-top:22px;width:min(1120px,100%);aspect-ratio:16/9;border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);border:1px solid var(--line);background:#000;position:relative}
+    .video-frame iframe{width:100%;height:100%;display:block;border:0}.video-poster{position:absolute;inset:0;border:0;padding:0;cursor:pointer;background:#000}.video-poster img{width:100%;height:100%;object-fit:cover;display:block;filter:saturate(1.05)}.play-badge{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:88px;height:88px;border-radius:50%;background:rgba(242,169,0,.94);display:grid;place-items:center;box-shadow:0 18px 46px rgba(0,0,0,.32);transition:transform .15s}.video-poster:hover .play-badge{transform:translate(-50%,-50%) scale(1.05)}.play-badge:after{content:"";margin-left:7px;border-left:26px solid var(--navy);border-top:16px solid transparent;border-bottom:16px solid transparent}
+
+    .plan-slide .content{grid-column:span 3}.plan-slide .visual{grid-column:span 9}.plan-slide .visual img{max-height:78vh}
+    .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:22px}
+    .card{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:20px;box-shadow:0 10px 28px rgba(8,37,91,.07);transition:transform .15s,box-shadow .2s}
+    .card:hover{transform:translateY(-2px);box-shadow:0 14px 34px rgba(8,37,91,.10)}
+    .card b{display:block;color:var(--teal);font-size:.78rem;letter-spacing:.09em;text-transform:uppercase;margin-bottom:7px}.card p{margin:0;line-height:1.45}
+
+    .agenda{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-top:24px}
+    .agenda-item{background:#fff;border-top:7px solid var(--blue);border-radius:var(--radius);padding:18px;border-left:1px solid var(--line);border-right:1px solid var(--line);border-bottom:1px solid var(--line);box-shadow:0 8px 22px rgba(8,37,91,.06);transition:transform .15s}
+    .agenda-item:nth-child(2){border-top-color:#37a01d}.agenda-item:nth-child(3){border-top-color:var(--gold)}.agenda-item:nth-child(4){border-top-color:#7b4ab6}.agenda-item:nth-child(5){border-top-color:var(--orange)}
+    .agenda-item:hover{transform:translateY(-3px)}
+    .agenda-item strong{font-size:1.2rem;color:var(--navy);display:block;margin-bottom:7px}.agenda-item small{color:var(--muted);font-weight:700}.agenda-item p{margin:10px 0 0;line-height:1.45}
+
+    .task-list{display:grid;gap:12px;margin:22px 0}.task{display:flex;gap:13px;align-items:flex-start;background:#fff;border:1px solid var(--line);border-radius:var(--radius-sm);padding:14px 16px;cursor:pointer;transition:background .15s}.task:hover{background:#fcfdff}.check{width:24px;height:24px;flex:0 0 24px;border:2px solid var(--blue);border-radius:7px;cursor:pointer;display:grid;place-items:center;color:#fff;transition:background .2s,border-color .2s}.task:hover .check{border-color:var(--teal)}.task.done .check{background:var(--teal);border-color:var(--teal)}.task.done .check:after{content:"✓"}.task.done .task-text{text-decoration:line-through;color:var(--muted)}.task-text{line-height:1.45}
+
+    .goal-stack{display:grid;gap:14px;margin-top:24px}.goal-card{display:flex;align-items:center;gap:16px;background:#fff;border:2px solid var(--line);border-left-width:8px;border-radius:var(--radius);padding:18px 20px;box-shadow:0 12px 28px rgba(8,37,91,.09);font-size:1.08rem;font-weight:900;line-height:1.3;transition:transform .15s}.goal-card:hover{transform:translateY(-2px)}
+    .goal-card:nth-child(1){border-left-color:var(--teal)}.goal-card:nth-child(2){border-left-color:var(--gold)}.goal-card:nth-child(3){border-left-color:var(--orange)}.goal-number{display:grid;place-items:center;flex:0 0 42px;width:42px;height:42px;border-radius:50%;background:var(--navy);color:#fff;font-weight:950}.goal-card:nth-child(2) .goal-number{background:var(--gold);color:var(--navy)}.goal-card:nth-child(3) .goal-number{background:var(--orange)}
+
+    #auftrag{align-content:start;padding-top:112px}#auftrag .grid{align-items:start}#auftrag .content,#auftrag .visual{align-self:start}#auftrag .visual img{max-height:64vh;margin-top:0}#auftrag h2{margin-top:0}#auftrag .lead{margin-top:22px}
+    #qualitaet{align-content:start;padding-top:104px}#qualitaet .grid{align-items:start}#qualitaet .content,#qualitaet .visual{align-self:start}#qualitaet .zoom-visual{min-height:auto}#qualitaet .zoom-visual img{width:100%;max-height:68vh;object-fit:contain}
+    #produkt{align-content:start;padding-top:104px}#produkt .grid{align-items:start}#produkt .content,#produkt .visual{align-self:start}#produkt .visual img{max-height:68vh;margin-top:0}
+
+    .app-suggestions{margin-top:24px;background:linear-gradient(135deg,#e8fbf7,#dff7f2);border:2px solid #9bded4;border-radius:var(--radius);padding:24px;box-shadow:0 16px 38px rgba(7,140,146,.14);width:100%}
+    .app-suggestions b{display:block;color:var(--navy);font-size:1.2rem;margin-bottom:16px}
+    .app-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.app-chip{display:flex;align-items:center;gap:13px;background:rgba(255,255,255,.85);border:1px solid #b8e7df;border-radius:16px;padding:14px 16px;font-size:1rem;line-height:1.3;color:#2f4264;font-weight:820;box-shadow:0 8px 18px rgba(7,140,146,.08);transition:transform .15s,box-shadow .2s}.app-chip:hover{transform:translateY(-2px);box-shadow:0 12px 24px rgba(7,140,146,.12)}.app-chip span{display:block;color:var(--teal);font-weight:950;margin-bottom:3px;font-size:1.05rem}.app-icon{display:grid;place-items:center;flex:0 0 48px;width:48px;height:48px;border-radius:14px;color:#fff;font-size:1.35rem;font-weight:950;box-shadow:0 8px 18px rgba(8,37,91,.18)}.app-icon.imovie{background:linear-gradient(135deg,#6e46ff,#bc7cff)}.app-icon.garage{background:linear-gradient(135deg,#f05b2f,#ffbf3d)}.app-icon.keynote{background:linear-gradient(135deg,#2264d8,#55c3ff)}.app-icon.pages{background:linear-gradient(135deg,#f6a100,#ffd35a);color:var(--navy)}.app-icon.canva{background:linear-gradient(135deg,#00c4cc,#7d2ae8)}.app-icon.stopmotion{background:linear-gradient(135deg,#d71d1d,#ff8b5f)}
+
+    .impulse-steps{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:24px}.impulse-step{background:#fff;border:2px solid var(--line);border-top:7px solid var(--teal);border-radius:var(--radius);padding:20px;box-shadow:0 14px 32px rgba(8,37,91,.1);transition:transform .15s}.impulse-step:nth-child(2){border-top-color:var(--gold)}.impulse-step:nth-child(3){border-top-color:var(--orange)}.impulse-step:hover{transform:translateY(-3px)}.impulse-step b{display:block;color:var(--navy);font-size:1.05rem;margin-bottom:8px}.impulse-step span{display:block;line-height:1.45;color:#263a5f;font-weight:750}
+    .plan-steps{display:grid;gap:12px;margin-top:22px}.plan-step{display:flex;gap:14px;align-items:center;background:#fff;border:2px solid var(--line);border-left:7px solid var(--blue);border-radius:var(--radius-sm);padding:15px 17px;box-shadow:0 10px 24px rgba(8,37,91,.08);font-size:1.05rem;font-weight:900;line-height:1.25;transition:background .15s}.plan-step:nth-child(2){border-left-color:var(--teal)}.plan-step:nth-child(3){border-left-color:var(--gold)}.plan-step:nth-child(4){border-left-color:var(--orange)}.plan-step-number{display:grid;place-items:center;flex:0 0 36px;width:36px;height:36px;border-radius:50%;background:var(--navy);color:#fff;font-weight:950}
+
+    .research-steps{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:24px}.research-step{background:#fff;border:2px solid var(--line);border-radius:var(--radius);padding:20px;box-shadow:0 14px 34px rgba(8,37,91,.1);border-top:7px solid var(--blue);transition:transform .15s}.research-step:nth-child(2){border-top-color:var(--teal)}.research-step:nth-child(3){border-top-color:var(--gold)}.research-step:hover{transform:translateY(-3px)}.research-step b{display:block;color:var(--navy);font-size:1.05rem;margin-bottom:8px}.research-step p{margin:0;color:#263a5f;font-weight:750;line-height:1.45}
+    .research-guide{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:24px}.research-guide-card{background:#fff;border:2px solid var(--line);border-radius:var(--radius);padding:18px;box-shadow:0 14px 32px rgba(8,37,91,.09);position:relative;overflow:hidden;transition:transform .15s}.research-guide-card:hover{transform:translateY(-3px)}.research-guide-card::before{content:attr(data-step);position:absolute;right:12px;top:6px;font-size:3.6rem;font-weight:950;color:rgba(8,37,91,.08);line-height:1}.research-guide-card b{display:block;color:var(--navy);font-size:1.02rem;margin-bottom:8px;position:relative}.research-guide-card p{margin:0;color:#2f4264;line-height:1.38;font-weight:750;position:relative}.research-guide-card:nth-child(1){border-top:7px solid var(--blue)}.research-guide-card:nth-child(2){border-top:7px solid var(--teal)}.research-guide-card:nth-child(3){border-top:7px solid var(--gold)}.research-guide-card:nth-child(4){border-top:7px solid var(--orange)}
+    .research-brief{margin-top:24px;background:#fff;border:2px solid var(--line);border-left:9px solid var(--gold);color:var(--ink);border-radius:var(--radius);padding:24px;box-shadow:0 18px 46px rgba(8,37,91,.12);position:relative;overflow:hidden}.research-brief::after{content:"?";position:absolute;right:22px;top:6px;font-size:7.5rem;font-weight:950;color:rgba(242,169,0,.14);line-height:1}.research-brief b{display:inline-block;background:var(--gold);color:var(--navy);border-radius:999px;padding:8px 13px;font-size:.86rem;letter-spacing:.08em;text-transform:uppercase}.research-brief p{margin:16px 0 18px;line-height:1.2;font-size:clamp(1.45rem,2.8vw,2.2rem);font-weight:950;color:var(--navy);max-width:900px}.research-checks{display:grid;grid-template-columns:1fr 1fr;gap:12px;position:relative;z-index:1}.research-check{display:flex;align-items:center;gap:12px;background:#f6f9fc;border:1px solid var(--line);border-radius:var(--radius-sm);padding:14px 16px;font-weight:900;line-height:1.3;color:#263a5f}.research-check::before{content:"";display:grid;place-items:center;flex:0 0 28px;width:28px;height:28px;border-radius:50%;background:var(--teal);box-shadow:inset 0 0 0 7px #dff7f4}.research-check:nth-child(2)::before{background:var(--blue);box-shadow:inset 0 0 0 7px #e1eefb}.research-check:nth-child(3)::before{background:var(--gold);box-shadow:inset 0 0 0 7px #fff3c9}.research-check:nth-child(4)::before{background:var(--orange);box-shadow:inset 0 0 0 7px #ffe2cf}
+
+    .plenum-method{margin-top:24px;background:#fff;border:2px solid var(--line);border-radius:var(--radius);padding:24px;box-shadow:0 18px 46px rgba(8,37,91,.12);display:grid;grid-template-columns:1.1fr .9fr;gap:22px;align-items:center}
+    .method-title{display:inline-flex;align-items:center;gap:10px;background:var(--navy);color:#fff;border-radius:999px;padding:9px 14px;font-weight:950;margin-bottom:16px}
+    .method-title span{display:grid;place-items:center;width:30px;height:30px;border-radius:50%;background:var(--gold);color:var(--navy)}
+    .method-flow{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+    .method-step{border:2px solid var(--line);border-radius:var(--radius);padding:18px;background:#f8fbff;position:relative;min-height:150px;transition:transform .15s,box-shadow .2s}
+    .method-step:hover{transform:translateY(-3px);box-shadow:0 10px 24px rgba(8,37,91,.08)}
+    .method-step::before{content:attr(data-icon);display:grid;place-items:center;width:46px;height:46px;border-radius:50%;background:#e8f2ff;color:var(--navy);font-size:1.45rem;margin-bottom:12px}
+    .method-step:nth-child(2)::before{background:#e2f7f5}.method-step:nth-child(3)::before{background:#fff2c7}
+    .method-step b{display:block;color:var(--navy);font-size:1.05rem;margin-bottom:8px}.method-step p{margin:0;line-height:1.4;font-weight:750;color:#304363}
+    .plenum-board{background:linear-gradient(135deg,var(--navy),#11448d);color:#fff;border-radius:var(--radius);padding:22px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.18)}
+    .plenum-board b{display:block;color:var(--gold);font-size:.86rem;letter-spacing:.08em;text-transform:uppercase;margin-bottom:12px}
+    .board-line{display:flex;gap:10px;align-items:center;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.22);border-radius:var(--radius-sm);padding:12px 14px;margin-top:10px;font-weight:850}
+    .board-line span{display:grid;place-items:center;flex:0 0 28px;width:28px;height:28px;border-radius:50%;background:var(--gold);color:var(--navy);font-weight:950}
+    .method-note{margin-top:16px;border-left:6px solid var(--teal);background:#eefbf9;border-radius:0 16px 16px 0;padding:15px 18px;font-weight:850;color:#243b54}
+
+    .exchange-board{margin-top:28px;display:grid;grid-template-columns:1fr 1fr;gap:22px}
+    .exchange-card{background:#fff;border:2px solid var(--line);border-radius:var(--radius);padding:28px 30px;box-shadow:0 18px 42px rgba(8,37,91,.12);border-top:9px solid var(--teal);min-height:260px;transition:transform .15s}
+    .exchange-card:hover{transform:translateY(-3px)}
+    .exchange-card:nth-child(2){border-top-color:var(--gold)}
+    .exchange-card b{display:block;color:var(--navy);font-size:1.35rem;margin-bottom:16px;line-height:1.15}.exchange-card ul{margin:0;padding-left:26px;line-height:1.55;font-size:1.15rem;font-weight:850;color:#2f4264}.exchange-card li{margin:8px 0}
+    .exchange-decision{margin-top:20px;background:linear-gradient(135deg,var(--navy),#123f87);color:#fff;border-radius:var(--radius);padding:22px;box-shadow:var(--shadow);font-size:1.1rem;line-height:1.45}
+    .exchange-decision b{color:var(--gold)}
+
+    .requirement-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:24px 0 0}
+    .requirement{border:2px solid var(--line);background:#fff;border-radius:var(--radius-sm);padding:16px;text-align:left;cursor:pointer;box-shadow:0 8px 24px rgba(8,37,91,.06);transition:transform .15s,border-color .2s,background .2s,box-shadow .2s;touch-action:manipulation}
+    .requirement:hover{transform:translateY(-2px);border-color:var(--teal);box-shadow:0 12px 28px rgba(8,37,91,.1)}
+    .requirement.active{background:var(--navy);border-color:var(--navy);color:#fff;box-shadow:0 16px 36px rgba(8,37,91,.22)}
+    .requirement:active{transform:scale(.98)}
+    .requirement-number{display:inline-grid;place-items:center;width:32px;height:32px;border-radius:50%;background:#eef7ff;color:var(--blue);font-weight:900;margin-bottom:10px;transition:background .2s,color .2s}
+    .requirement.active .requirement-number{background:var(--gold);color:var(--navy)}
+    .requirement-title{display:block;font-weight:900;line-height:1.2}
+    .requirement-detail{display:none;margin-top:16px;border-left:6px solid var(--gold);background:#fff8df;border-radius:0 16px 16px 0;padding:18px 20px;font-size:1.05rem;line-height:1.45}
+    .requirement-detail.show{display:block}
+
+    .example-box{display:none;margin:16px 18px 18px;border:2px solid #37a01d;background:linear-gradient(135deg,#f3ffef,#e5f9dc);border-radius:var(--radius-sm);padding:16px 18px;color:#173b18;box-shadow:0 12px 28px rgba(55,160,29,.16)}
+    .example-box.show{display:block}
+    .example-box b{display:block;color:#247314;font-size:.82rem;letter-spacing:.08em;text-transform:uppercase;margin-bottom:7px}
+    .example-box span{display:block;line-height:1.45;font-weight:700}
+    .message-box{margin-top:14px;border:2px solid #37a01d;background:linear-gradient(135deg,#f3ffef,#e5f9dc);border-radius:var(--radius-sm);padding:16px 18px;color:#173b18;box-shadow:0 12px 28px rgba(55,160,29,.14);line-height:1.45}
+    .message-box b{color:#247314}
+
+    .quiz{margin-top:18px;background:linear-gradient(135deg,var(--navy),#123f87);color:#fff;border-radius:var(--radius);padding:18px;box-shadow:var(--shadow)}
+    .quiz.focused{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:34;width:min(980px,92vw);max-height:86vh;overflow:auto;padding:28px;box-shadow:0 32px 100px rgba(0,0,0,.38);border:2px solid var(--gold)}
+    .quiz-top{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:12px;font-weight:900}.quiz-count{color:var(--gold)}
+    .quiz-question{font-size:1.12rem;line-height:1.35;font-weight:850;margin-bottom:14px}
+    .quiz-options{display:grid;grid-template-columns:1fr 1fr;gap:10px}.quiz-option{border:1px solid rgba(255,255,255,.36);background:rgba(255,255,255,.1);color:#fff;border-radius:12px;padding:13px;text-align:left;cursor:pointer;font-weight:750;line-height:1.3;transition:background .15s,transform .1s;min-height:44px}
+    .quiz-option:hover{background:rgba(255,255,255,.18)}
+    .quiz-option:active{transform:scale(.99)}
+    .quiz-option.correct{background:#1f8f35;border-color:#64d982}.quiz-option.wrong{background:#b93434;border-color:#ffaaaa}
+    .quiz-feedback{min-height:24px;margin-top:12px;font-weight:850}
+    .quiz-actions{display:flex;gap:10px;align-items:center;margin-top:12px}.quiz-actions button{border:0;border-radius:11px;padding:11px 14px;font-weight:850;cursor:pointer;min-height:44px}
+    .quiz-next{background:var(--gold);color:var(--navy)}.quiz-reset{background:rgba(255,255,255,.14);color:#fff;border:1px solid rgba(255,255,255,.3)!important}
+    .quiz-qr{display:flex;gap:12px;align-items:center;margin-top:14px;background:#fff;color:var(--navy);border-radius:var(--radius-sm);padding:12px;border:1px solid var(--line)}
+    .quiz-qr img{width:88px;height:88px;border:0;border-radius:8px;box-shadow:none}.quiz-qr b{display:block}.quiz-qr small{color:var(--muted);font-weight:800;word-break:break-all}
+
+    .quiz-finale{grid-column:1/-1;background:linear-gradient(135deg,var(--gold),#ffe38f);color:var(--navy);border:0;border-radius:var(--radius);padding:28px;font-size:clamp(1.4rem,2.8vw,2.4rem);line-height:1.12;font-weight:950;text-align:center;box-shadow:0 18px 42px rgba(0,0,0,.18)}
+    .quiz-finale small{display:block;margin-top:14px;font-size:1rem;line-height:1.35;font-weight:850;color:#27415f}
+
+    .quiz-start{display:grid;gap:14px;text-align:center;padding:12px 0}
+ .quiz-start b{color:var(--gold);font-size:clamp(1.6rem,3vw,2.4rem);display:block;margin-bottom:6px}
+    .quiz-start p{margin:0;color:#dce6f1;font-weight:750;line-height:1.45;font-size:1.05rem}
+
+    .plan-cue{display:flex;align-items:center;gap:18px;margin:0 0 18px}.plan-cue h2{margin:0}
+    .strict-smiley{position:relative;flex:0 0 82px;width:82px;height:82px;border-radius:50%;background:var(--gold);border:4px solid var(--navy);box-shadow:0 12px 28px rgba(8,37,91,.18)}.strict-smiley::before{content:"";position:absolute;left:15px;top:30px;width:16px;height:16px;border:4px solid var(--navy);border-radius:50%;box-shadow:32px 0 0 -4px var(--gold),32px 0 0 0 var(--navy)}.strict-smiley::after{content:"";position:absolute;right:-29px;top:47px;width:48px;height:5px;background:var(--navy);border-radius:999px;transform:rotate(-18deg)}.strict-smiley .hat{position:absolute;left:5px;top:-25px;width:72px;height:28px;background:var(--navy);clip-path:polygon(50% 0,100% 34%,50% 68%,0 34%);filter:drop-shadow(0 5px 3px rgba(8,37,91,.18))}.strict-smiley .hat::before{content:"";position:absolute;left:24px;top:17px;width:24px;height:12px;background:var(--navy);border-radius:0 0 6px 6px}.strict-smiley .hat::after{content:"";position:absolute;right:6px;top:11px;width:3px;height:22px;background:var(--gold);transform:rotate(-8deg);box-shadow:0 18px 0 1px var(--gold)}.strict-smiley .brow{position:absolute;left:17px;top:24px;width:18px;height:4px;background:var(--navy);border-radius:999px;transform:rotate(16deg);box-shadow:32px -8px 0 var(--navy)}.strict-smiley .mouth{position:absolute;left:28px;bottom:11px;width:26px;height:13px;border-bottom:4px solid var(--navy);border-radius:0 0 50% 50%;transform:rotate(-3deg)}
+
+    .prompt{border-left:6px solid var(--gold);background:#fff8df;border-radius:0 16px 16px 0;padding:18px 20px;margin-top:20px;font-size:1.1rem;line-height:1.45;max-width:78ch}
+    .prompt b{color:var(--navy)}
+    .timerbox{display:flex;align-items:center;gap:24px;background:var(--navy);color:#fff;border-radius:var(--radius);padding:24px 28px;margin-top:22px;box-shadow:var(--shadow)}
+ .timerbox.green{background:linear-gradient(135deg,#0a7a5a,#26b290)}
+    .timer-wrap{position:relative;display:grid;place-items:center;width:240px;height:240px;flex:0 0 240px;}
+    .timer-ring{position:absolute;inset:0;width:100%;height:100%;transform:rotate(-90deg);}
+    .timer-ring-track{fill:none;stroke:rgba(255,255,255,.25);stroke-width:7;}
+    .timer-ring-fill{fill:none;stroke:var(--gold);stroke-width:7;stroke-linecap:round;transition:stroke-dashoffset 1s linear;}
+    .timerbox.green .timer-ring-fill{stroke:#ffd05a;}
+    .timer{position:relative;z-index:1;font-size:clamp(2.6rem,5.5vw,4.8rem);font-weight:900;font-variant-numeric:tabular-nums;letter-spacing:-0.03em;}
+    .timer-wrap .timer{font-size:clamp(2.2rem,4vw,3.6rem);min-width:auto;}
+    .timer-controls{display:flex;flex-wrap:wrap;gap:10px}
+    .timer-controls button{border:1px solid rgba(255,255,255,.35);background:rgba(255,255,255,.1);color:#fff;border-radius:10px;padding:11px 14px;cursor:pointer;font-weight:800;min-height:44px;transition:background .15s}
+    .timer-controls button:hover{background:rgba(255,255,255,.2)}
+    .break{background:linear-gradient(135deg,#fff9e5,#eef9f7)}.break h2{color:var(--orange)}
+    .finish{background:linear-gradient(90deg,rgba(3,18,48,.88) 0%,rgba(3,18,48,.7) 42%,rgba(3,18,48,.28) 100%),url("assets/abschluss-hintergrund.jpg") center/cover no-repeat;color:#fff}.finish::after{display:none}.finish h2,.finish .eyebrow{color:#fff;text-shadow:0 3px 20px rgba(0,0,0,.42)}.finish .lead{color:#dceaff}.finish .card{color:var(--ink)}
+    .closing-wrap{display:grid;grid-template-columns:1fr 170px;gap:24px;align-items:end;margin-top:24px}.closing-cards{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+    .mini-caricature{position:relative;width:150px;height:170px;justify-self:center}.mini-caricature .head{position:absolute;left:30px;top:30px;width:92px;height:92px;border-radius:50%;background:var(--gold);border:4px solid #fff}.mini-caricature .hair{position:absolute;left:22px;top:20px;width:104px;height:38px;border-radius:50% 50% 0 0;background:#fff;transform:rotate(-4deg)}.mini-caricature .eye{position:absolute;top:66px;width:10px;height:10px;border-radius:50%;background:var(--navy)}.mini-caricature .eye.left{left:61px}.mini-caricature .eye.right{left:91px}.mini-caricature .mouth{position:absolute;left:68px;top:88px;width:28px;height:14px;border-bottom:4px solid var(--navy);border-radius:0 0 50% 50%}.mini-caricature .body{position:absolute;left:44px;top:118px;width:70px;height:48px;background:#fff;border-radius:18px 18px 8px 8px}.mini-caricature .paper{position:absolute;right:0;top:102px;width:48px;height:58px;background:#eef9ff;border:3px solid #fff;border-radius:6px;transform:rotate(8deg)}.mini-caricature .paper::before{content:"";position:absolute;left:8px;top:13px;width:28px;height:4px;background:var(--blue);box-shadow:0 12px 0 var(--teal),0 24px 0 var(--gold)}
+    .next-day{margin-top:28px;display:grid;grid-template-columns:minmax(260px,390px) minmax(340px,1fr);gap:24px;align-items:center;max-width:1100px}
+    .next-day img{width:100%;max-height:48vh;object-fit:contain;border-radius:var(--radius);border:2px solid rgba(255,255,255,.5);box-shadow:0 18px 46px rgba(0,0,0,.28);background:#fff}
+    .next-day-card{background:rgba(255,255,255,.92);color:var(--navy);border-radius:var(--radius);padding:26px 30px;box-shadow:0 18px 46px rgba(0,0,0,.22);border-left:9px solid #37a01d}
+    .next-day-card b{display:block;color:#247314;text-transform:uppercase;letter-spacing:.1em;font-size:.86rem;margin-bottom:12px}
+    .next-day-card p{font-size:clamp(1.3rem,2.2vw,1.9rem);line-height:1.18;font-weight:950;margin:0 0 16px}
+    .next-day-card ul{margin:0;padding-left:22px;font-size:1.05rem;line-height:1.5;font-weight:800;color:#263a5f}
+
+    .speaker{position:fixed;left:18px;bottom:18px;z-index:18;border:0;background:var(--gold);color:var(--navy);border-radius:var(--radius-sm);padding:12px 16px;font-weight:900;cursor:pointer;box-shadow:0 12px 25px rgba(0,0,0,.16);min-height:44px;transition:transform .15s,box-shadow .2s}
+    .speaker:hover{transform:translateY(-2px);box-shadow:0 16px 32px rgba(0,0,0,.2)}
+    .asw-logo{position:fixed;right:72px;top:82px;z-index:19;width:64px;height:auto;background:rgba(255,255,255,.9);border:1px solid rgba(255,255,255,.72);border-radius:var(--radius-sm);padding:8px;box-shadow:0 10px 28px rgba(8,37,91,.13)}
+    .author-footer{position:fixed;left:50%;bottom:12px;transform:translateX(-50%);z-index:17;padding:7px 14px;border-radius:999px;background:rgba(255,255,255,.88);border:1px solid rgba(220,230,241,.9);color:var(--navy);font-weight:850;box-shadow:0 8px 22px rgba(8,37,91,.1);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);font-size:.92rem}
+    .notes{display:none;margin-top:18px;padding:16px 18px;border:1px dashed var(--teal);background:#f1fbfb;border-radius:var(--radius-sm);color:#25445b;line-height:1.45}
+    .notes b{color:var(--teal)}
+    .show-notes .notes{display:block}
+
+    dialog{border:0;border-radius:var(--radius);padding:0;box-shadow:0 30px 90px rgba(0,0,0,.28);width:min(620px,90vw)}
+    dialog::backdrop{background:rgba(8,24,53,.58)}
+    .dialog-in{padding:26px}
+    .dialog-in h3{font-size:1.55rem}
+    .jump-list{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+    .jump-list button{border:1px solid var(--line);background:#fff;border-radius:10px;padding:12px 14px;text-align:left;cursor:pointer;min-height:44px;font-weight:800;transition:background .15s}
+    .jump-list button:hover{background:var(--paper)}
+    .close{float:right;border:0;background:#eef3f8;border-radius:9px;padding:8px 11px;cursor:pointer;min-height:36px}
+
+    @media (min-width:1200px){section{padding-left:6vw;padding-right:6vw}.grid{gap:32px}.content{grid-column:span 4}.visual{grid-column:span 8}.plan-slide .content{grid-column:span 3}.plan-slide .visual{grid-column:span 9}.jump-list{grid-template-columns:1fr 1fr 1fr}dialog{width:min(860px,88vw)}}
+    @media (max-width:950px){
+      .grid{display:block}
+      .visual{margin-top:24px}
+      .cards{grid-template-columns:1fr 1fr}
+      .agenda{grid-template-columns:1fr 1fr}
+      .plenum-method{grid-template-columns:1fr}
+      .topbar{height:66px}
+      .brand{font-size:.86rem}
+      section{padding:90px 6vw 45px}
+      .timerbox{align-items:flex-start;flex-direction:column}
+      .timer-wrap{width:170px;height:170px;flex:0 0 170px;}
+      .timer{font-size:2.2rem}
+      .asw-logo{top:78px;width:62px}
+      .next-arrow{right:18px;bottom:18px;width:48px;height:48px;font-size:1.4rem}
+    }
+    @media (max-width:600px){
+      .cards,.agenda,.requirement-grid,.quiz-options,.research-steps,.research-guide,.research-checks,.closing-cards,.method-flow,.exchange-board,.app-grid,.next-day{grid-template-columns:1fr}
+      .closing-wrap{grid-template-columns:1fr}
+      .topbar{gap:10px}
+      .menu-btn{padding:8px 10px;font-size:.9rem}
+      .jump-list{grid-template-columns:1fr}
+      .asw-logo{right:12px;width:54px}
+      .author-footer{font-size:.86rem;bottom:10px;padding:6px 12px}
+      .timer{font-size:2.4rem}
+      .quiz.focused{padding:18px}
+    }
+    @media print{
+      .topbar,.side,.speaker,.nav-actions,.timer-controls,.next-arrow{display:none!important}
+      .asw-logo,.author-footer{position:fixed}
+      section{min-height:auto;page-break-after:always;padding:25px;overflow:visible;opacity:1;transform:none}
+      .notes{display:block}
+      .visual img{max-height:520px;box-shadow:none}
+    }
+    .comic-slide{align-content:start;padding-top:104px}.comic-viewer{margin-top:22px;background:#fff;border:1px solid var(--line);border-radius:24px;padding:18px;box-shadow:var(--shadow);display:grid;grid-template-columns:minmax(0,1fr) 260px;gap:18px;align-items:center}.comic-frame{display:grid;place-items:center;background:#f6f9fc;border-radius:18px;min-height:60vh;overflow:hidden}.comic-frame img{max-width:100%;max-height:72vh;object-fit:contain;border-radius:12px;box-shadow:0 12px 34px rgba(8,37,91,.12)}.comic-controls{display:grid;gap:14px}.comic-controls b{color:var(--navy);font-size:1.25rem}.comic-controls p{margin:0;color:#334669;font-weight:750;line-height:1.45}.comic-buttons{display:flex;gap:10px}.comic-buttons button{border:0;border-radius:12px;padding:12px 14px;background:var(--navy);color:#fff;font-weight:900;cursor:pointer}.comic-buttons button:nth-child(2){background:var(--teal)}.comic-count{font-weight:950;color:var(--teal)}
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">DIGITAL <span>ARTISTS</span> · MONTAG</div>
+    <div class="progress-wrap" aria-label="Fortschritt"><div class="progress" id="progress"></div></div>
+    <button class="menu-btn" id="openMenu" aria-label="Abschnitte öffnen">☰ Ablauf</button>
+  </header>
+  <img class="asw-logo" src="assets/asw-logo.png" alt="ASW Logo">
+  <nav class="side" id="side" aria-label="Abschnitte" style="display:none"></nav>
+  <button class="speaker" id="speaker">Projektbegleiter-Hinweise</button>
+  <button class="next-arrow" id="nextArrow" aria-label="Nächste Folie">↓</button>
+  <div class="author-footer">Christian Schwend</div>
+
+  <main id="main">
+    <section id="start" data-title="Start">
+      <div class="project-title">Digital Artists</div>
+      <h1>Deine Idee.<br>Dein Plan.<br><span style="color:var(--teal)">Deine Zukunft.</span></h1>
+      <p class="lead">Ein digitales Projekt zu den großen Themen unserer Zukunft</p>
+      <div class="notes"><b>Projektbegleiter-Hinweis:</b> Begrüßung, Tagesziel knapp nennen. Noch keine Apps öffnen lassen. Die Produktion beginnt erst nach Planung und Freigabe.</div>
+    </section>
+
+    <section id="comic" class="comic-slide" data-title="Zukunftscomic">
+      <div class="eyebrow">8:30–8:40 · Impuls I:</div>
+      <h2>Zukunft als Comic</h2>
+      <p class="lead">Welche Zukunftsideen, Fragen oder Probleme werden genannt?</p>
+      <div class="comic-viewer" data-comic>
+        <div class="comic-frame"><img id="comicImage" src="assets/comic/zukunftscomic-1.jpg" alt="Zukunftscomic Seite 1"></div>
+        <div class="comic-controls">
+          <b>Comic-Slideshow</b>
+          <p>Schaut genau hin: Was wird dargestellt? Welche Probleme oder Chancen für Menschen stecken darin?</p>
+          <div class="comic-count" id="comicCount">Seite 1 / 3</div>
+          <div class="comic-buttons"><button type="button" id="comicPrev">Zurück</button><button type="button" id="comicNext">Weiter</button></div>
+        </div>
+      </div>
+      <div class="notes"><b>Projektbegleiter-Hinweis:</b> Comic als kurzen visuellen Impuls nutzen. Nicht alles erklären lassen, sondern auf Zukunftsthemen, Probleme und mögliche Produktideen lenken.</div>
+    </section>
+
+    <section id="video" data-title="Impuls II">
+      <div class="eyebrow">8:40–8:45 · Impuls II</div>
+      <h2>Unsere Welt in 50 Jahren?</h2>
+      <p class="lead">Welche Ideen, Technologien und Probleme werden in unserer Zukunft eine Rolle spielen?</p>
+      <div class="video-frame" data-video="https://www.youtube.com/embed/31srjdU5-bY?si=UyK8LmxKWNck0-yY&autoplay=1">
+        <button class="video-poster" aria-label="Video starten">
+          <img src="assets/video-vorschau.jpg" alt="Vorschaubild zum Video Unsere Welt in 50 Jahren">
+          <span class="play-badge" aria-hidden="true"></span>
+        </button>
+      </div>
+      <div class="notes"><b>Projektbegleiter-Hinweis:</b> Video als Einstieg nutzen. Danach keine Inhaltsabfrage im Detail, sondern erste Zukunftsbilder sammeln: Was wirkt spannend, was problematisch, was betrifft Menschen konkret?</div>
+    </section>
+
+    <section id="impuls" data-title="Impuls 3">
+      <div class="eyebrow">8:45–8:55 · Impuls 3</div>
+      <h2>Wie möchtest du im Jahr 2050 leben?</h2>
+      <p class="lead">Überlege für dich eine Antwort auf diese Frage. Notiere dir eine positive und eine negative Sache.</p>
+
+      <!-- Timer 1: Nachdenken -->
+      <div class="timerbox">
+        <div class="timer-wrap">
+          <svg class="timer-ring" viewBox="0 0 120 120">
+            <circle class="timer-ring-track" cx="60" cy="60" r="54" />
+            <circle class="timer-ring-fill" cx="60" cy="60" r="54" />
+          </svg>
+          <div class="timer">02:00</div>
+        </div>
+        <div>
+          <h3 style="color:#fff">Zeit zum Nachdenken</h3>
+          <div class="timer-controls">
+            <button class="timer-start">Start/Pause</button>
+            <button class="timer-reset">Zurücksetzen</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Timer 2: Austausch -->
+      <div class="timerbox green">
+        <div class="timer-wrap">
+          <svg class="timer-ring" viewBox="0 0 120 120">
+            <circle class="timer-ring-track" cx="60" cy="60" r="54" />
+ <circle class="timer-ring-fill" cx="60" cy="60" r="54" />
+          </svg>
+          <div class="timer">03:00</div>
+        </div>
+        <div>
+          <h3 style="color:#fff">Zeit zum Austausch</h3>
+          <div class="timer-controls">
+            <button class="timer-start localStart">Start/Pause</button>
+            <button class="timer-reset localReset">Zurücksetzen</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="notes"><b>Projektbegleiter-Hinweis:</b> Nach der Stillphase 2–3 Stimmen einsammeln, ohne die Ideen zu bewerten. Übergang: „Genau aus solchen Fragen entstehen eure Projekte.“</div>
+    </section>
+
+    <section id="auftrag" data-title="Projektauftrag">
+      <div class="grid">
+        <div class="content">
+          <div class="eyebrow">8:55–9:00 · Orientierung</div>
+          <h2>Was machen wir diese Woche?</h2>
+          <p class="lead">Ihr entwickelt allein oder im Team ein digitales Produkt zu einer Zukunftsfrage – kreativ, verständlich und eigenständig.</p>
+          <div class="goal-stack">
+            <div class="goal-card"><span class="goal-number">1</span><span>Gedanken über die Zukunft machen</span></div>
+            <div class="goal-card"><span class="goal-number">2</span><span>Gedanken in einem kreativen Produkt zum Ausdruck bringen</span></div>
+            <div class="goal-card"><span class="goal-number">3</span><span>Produkt am Freitag ausstellen</span></div>
+          </div>
+        </div>
+        <div class="visual"><img src="assets/infotext.jpg" alt="Infotext zum Projekt Digital Artists"></div>
+      </div>
+      <div class="notes"><b>Projektbegleiter-Hinweis:</b> Infotext nicht komplett vorlesen. Kernauftrag markieren: eigenes Zukunftsbild, digitales Produkt, mehrere Tage konzentrierte Arbeit, Präsentation am Freitag.</div>
+    </section>
+
+    <section id="woche" data-title="Wochenüberblick">
+      <div class="eyebrow">9:00–9:10 · Der Weg zum Ergebnis</div>
+      <h2>Meine Projekt-Challenge: Informieren – Strukturieren – Darstellen.</h2>
+      <div class="visual" style="margin-top:24px;grid-column:auto"><img src="assets/wochenplan.jpg" alt="Wochenplan der Projektwoche"></div>
+      <div class="notes"><b>Projektbegleiter-Hinweis:</b> Besonders den Unterschied zwischen Dienstag (Vorbereitung/Rohmaterial) und Mittwoch (Produktion) herausstellen.</div>
+    </section>
+
+    <section id="qualitaet" data-title="Qualität">
+      <div class="grid">
+        <div class="content">
+          <div class="eyebrow">9:10–9:20 · Qualitätscheck</div>
+          <div class="plan-cue">
+            <div class="strict-smiley" aria-hidden="true"><span class="hat"></span><span class="brow"></span><span class="mouth"></span></div>
+            <h2>Mit gutem Plan zum Ziel</h2>
+          </div>
+          <div class="requirement-grid" aria-label="Sechs Anforderungen">
+            <button class="requirement" data-detail="1"><span class="requirement-number">1</span><span class="requirement-title">Grundanforderungen</span></button>
+            <button class="requirement" data-detail="2"><span class="requirement-number">2</span><span class="requirement-title">Pflichtbestandteile</span></button>
+            <button class="requirement" data-detail="3"><span class="requirement-number">3</span><span class="requirement-title">Mindestumfang</span></button>
+            <button class="requirement" data-detail="4"><span class="requirement-number">4</span><span class="requirement-title">Prozess</span></button>
+            <button class="requirement" data-detail="5"><span class="requirement-number">5</span><span class="requirement-title">Qualität</span></button>
+            <button class="requirement" data-detail="6"><span class="requirement-number">6</span><span class="requirement-title">Mängel vermeiden</span></button>
+          </div>
+          <div class="message-box"><b>Botschaft:</b> Was soll euer Publikum am Freitag verstehen, fühlen oder diskutieren?</div>
+          <div class="requirement-detail" data-detail="1"><b>Thema:</b> Ist klar erkennbar, mit welchem Zukunftsbereich ihr euch beschäftigt?</div>
+          <div class="requirement-detail" data-detail="2"><b>Problem:</b> Welche konkrete Frage oder Herausforderung wollt ihr untersuchen?</div>
+          <div class="requirement-detail" data-detail="3"><b>Ideen:</b> Habt ihr mindestens drei eigene Lösungs- oder Gestaltungsideen gesammelt?</div>
+          <div class="requirement-detail" data-detail="4"><b>Produkt:</b> Passt die gewählte Form zu eurer Idee und ist sie bis Freitag machbar?</div>
+          <div class="requirement-detail" data-detail="5"><b>Chance & Kritik:</b> Was wäre an eurer Zukunftsidee hilfreich, und was könnte problematisch sein?</div>
+          <div class="requirement-detail" data-detail="6"><b>Mängel vermeiden:</b> Was müsst ihr vermeiden, damit euer Produkt nicht oberflächlich, unklar oder schnell gemacht wirkt?</div>
+        </div>
+        <div class="visual zoom-visual" id="anforderungsZoom">
+          <img id="anforderungsBild" src="assets/anforderungsprofil.jpg" alt="Anforderungsprofil Digital Artists">
+          <div class="example-box" id="grundanforderungBeispiel">
+            <b>Beispiel Zukunftsthema</b>
+            <span>„Mobilität in der Stadt“: Ältere Menschen ohne Auto kommen schlecht zum Arzt, zum Einkaufen oder zu Freunden.</span>
+          </div>
+        </div>
+      </div>
+      <div class="notes"><b>Projektbegleiter-Hinweis:</b> Die sechs Anforderungen nacheinander anklicken und kurz mit Beispielen füllen lassen: Thema, Problem, Ideen, Produkt, Chance/Kritik, Botschaft.</div>
+    </section>
+
+    <section id="themen" data-title="Themen finden">
+      <div class="grid">
+        <div class="content">
+          <div class="eyebrow">9:20–9:35 · Themen-Findung</div>
+          <h2>Was begeistert dich?</h2>
+          <p class="lead">Überlege in Ruhe, welches Thema dich wirklich interessiert. Siehst du bei deinem Thema Chancen, aber auch Probleme? Wähle ein Thema, bei dem es dir leicht fällt, Lösungsvorschläge für die damit verbundenen Probleme zu finden.</p>
+          <div class="quiz" id="themeQuiz">
+            <div class="quiz-top"><span>Millionenfrage der Zukunft</span><span class="quiz-count" id="quizCount">Willkommen</span></div>
+ <div class="quiz-question" id="quizQuestion"></div>
+            <div class="quiz-options" id="quizOptions"></div>
+            <div class="quiz-feedback" id="quizFeedback"></div>
+            <div class="quiz-actions" id="quizActions">
+              <button class="quiz-next" id="quizNext">Nächste Frage</button>
+              <button class="quiz-reset" id="quizReset">Neu starten</button>
+              <span id="quizScore"></span>
+            </div>
+            <div class="quiz-qr">
+              <img src="assets/quiz-qr.svg" alt="QR-Code zum Zukunftsquiz">
+              <div><b>Quiz auf dem iPad</b><small>http://192.168.178.129:8000/quiz.html</small></div>
+            </div>
+          </div>
+        </div>
+        <div class="visual"><img class="click-zoom" src="assets/themen.jpg" alt="Mögliche Zukunftsthemen"></div>
+      </div>
+      <div class="notes"><b>Projektbegleiter-Hinweis:</b> Themen zunächst individuell sichten lassen. Quiz und Themenbild als Impuls nutzen. Ziel: Jede Person markiert ein bis zwei Themen, über die sie gleich mit anderen sprechen möchte.</div>
+    </section>
+
+    <section id="themen-austausch" data-title="Zukunftsthema">
+      <div class="eyebrow">9:35–9:45 · Austausch zur Themenwahl</div>
+      <h2>Was ist mein Zukunftsthema?</h2>
+      <p class="lead">Tauscht euch in kleinen Gruppen aus. Welches Thema spricht dich an? Wer interessiert sich für die gleichen Themen? Ziel ist nicht, sofort „irgendein Thema“ zu wählen, sondern ein Thema zu finden, bei dem ihr Chancen, Probleme und erste Lösungsideen erkennen könnt.</p>
+      <div class="exchange-board">
+        <article class="exchange-card">
+          <b>1 · Themen-Kompass</b>
+          <ul>
+            <li>Welche Themen interessieren uns wirklich?</li>
+            <li>Wo sehen wir ein echtes Problem für Menschen?</li>
+            <li>Zu welchem Thema fallen uns erste Lösungsideen ein?</li>
+          </ul>
+        </article>
+        <article class="exchange-card">
+          <b>2 · Kurzer Austausch</b>
+          <ul>
+            <li>Jede Person nennt einen Favoriten.</li>
+            <li>Die Gruppe stellt eine Rückfrage.</li>
+            <li>Am Ende bleiben ein bis zwei starke Themen übrig.</li>
+          </ul>
+        </article>
+      </div>
+      <div class="exchange-decision">
+        <b>Entscheidungshilfe:</b> Ein gutes Projektthema ist interessant, konkret und problemhaltig. Wenn ihr dazu erklären könnt, wen das Problem betrifft und welche Zukunftsidee helfen könnte, seid ihr auf einem guten Weg.
+      </div>
+      <div class="notes"><b>Projektbegleiter-Hinweis:</b> Austausch bewusst begrenzen. Lernende sollen nicht nur gleiche Interessen finden, sondern prüfen, ob ein Thema genug Substanz hat: Chance, Problem, mögliche Lösung. Noch keine endgültige Produktform festlegen.</div>
+    </section>
+
+    <section id="pause1" class="break" data-title="Pause">
+      <div class="eyebrow">9:45–10:15</div>
+      <h2>Pause</h2>
+      <p class="lead">Bewegen, trinken, lüften. Danach werden Thema und Team verbindlich festgelegt.</p>
+      <div class="timerbox">
+        <div class="timer-wrap">
+          <svg class="timer-ring" viewBox="0 0 120 120">
+            <circle class="timer-ring-track" cx="60" cy="60" r="54" />
+            <circle class="timer-ring-fill" cx="60" cy="60" r="54" />
+          </svg>
+          <div class="timer">30:00</div>
+        </div>
+        <div>
+          <h3 style="color:#fff">Pausentimer</h3>
+          <div class="timer-controls">
+            <button data-min="30">30 Min.</button>
+            <button class="localStart">Start/Pause</button>
+            <button class="localReset">Zurücksetzen</button>
+          </div>
+        </div>
+      </div>
+      <div class="notes"><b>Projektbegleiter-Hinweis:</b> Kurz notieren, wer noch ohne Thema, Partner oder klare Richtung ist.</div>
+    </section>
+
+    <section id="team" class="plan-slide" data-title="Projektplan">
+      <div class="grid">
+        <div class="content">
+          <div class="eyebrow">10:15–10:30 · Projektplan besprechen</div>
+          <h2>Erst denken. Dann eintragen.</h2>
+          <p class="lead">Besprecht den Projektplan gemeinsam. Noch nicht sofort ausfüllen: Erst müssen Thema, Frage und Produktform wirklich klar sein.</p>
+          <div class="plan-steps">
+            <div class="plan-step"><span class="plan-step-number">1</span><span>Was genau ist unser Thema?</span></div>
+            <div class="plan-step"><span class="plan-step-number">2</span><span>Welche Frage oder welches Problem steckt darin?</span></div>
+            <div class="plan-step"><span class="plan-step-number">3</span><span>Welches Medium passt zu unserer Idee?</span></div>
+            <div class="plan-step"><span class="plan-step-number">4</span><span>Am Ende ausfüllen und zum Fotografieren bereitlegen</span></div>
+          </div>
+        </div>
+        <div class="visual"><img class="click-zoom" src="assets/projektplan-gross.jpg" alt="Arbeitsblatt Mein Projektplan"></div>
+      </div>
+      <div class="notes"><b>Projektbegleiter-Hinweis:</b> Diese Folie als gemeinsame Einführung in den Projektplan nutzen. Reihenfolge betonen: 1. Thema präzisieren, 2. konkrete Frage bzw. konkretes Problem formulieren, 3. passendes Medium als Produkt wählen. Erst später ausfüllen lassen; die fertigen Projektpläne werden fotografiert.</div>
+    </section>
+
+    <section id="frage" data-title="Rechercheauftrag">
+      <div class="eyebrow">10:30–11:30 · Rechercheauftrag</div>
+      <h2>Aus einem Thema wird Wissen.</h2>
+      <p class="lead">Jetzt eignet ihr euch aktiv Wissen zu eurem Thema an. Noch kein Produkt erstellen, noch nicht gestalten: Erst verstehen, worum es wirklich geht.</p>
+      <div class="research-guide" aria-label="Tipps zur Recherche">
+        <article class="research-guide-card" data-step="1">
+          <b>Suchfrage formulieren</b>
+          <p>Startet nicht mit einem einzelnen Wort. Sucht nach einer konkreten Frage: Wer ist betroffen? Was verändert sich? Warum ist das wichtig?</p>
+        </article>
+        <article class="research-guide-card" data-step="2">
+          <b>Quellen gezielt auswählen</b>
+          <p>Nutzt mindestens zwei seriöse Quellen, zum Beispiel Nachrichtenseiten, Wissenschaft, Behörden, Stiftungen oder gut erklärte Fachbeiträge.</p>
+        </article>
+        <article class="research-guide-card" data-step="3">
+          <b>Wichtiges sichern</b>
+          <p>Notiert Fakten in eigenen Worten. Schreibt dazu, woher die Information stammt und welches Problem für Menschen sichtbar wird.</p>
+        </article>
+        <article class="research-guide-card" data-step="4">
+          <b>Frage schärfen</b>
+          <p>Prüft am Ende: Ist unser Thema genauer geworden? Müssen wir unsere Zukunftsfrage oder unseren Projektplan anpassen?</p>
+        </article>
+      </div>
+      <div class="research-brief">
+        <b>Arbeitsauftrag</b>
+        <p>Müssen wir unseren Projektplan nochmals ändern?</p>
+        <div class="research-checks">
+          <div class="research-check">Thema nach der Recherche prüfen</div>
+          <div class="research-check">Frage oder Problem gegebenenfalls schärfen</div>
+          <div class="research-check">Produktidee an das neue Wissen anpassen</div>
+          <div class="research-check">Plan bei Bedarf neu gestalten</div>
+        </div>
+      </div>
+      <div class="notes"><b>Projektbegleiter-Hinweis:</b> Deutlich sagen: In dieser Stunde wird noch kein Film, Comic, Plakat oder anderes Produkt erstellt. Die Lernenden sammeln Wissen, prüfen Quellen und schärfen ihre Frage. Bei oberflächlichen Themen nachfragen: „Wen betrifft das konkret?“ und „Was wissen wir darüber wirklich?“</div>
+    </section>
+
+    <section id="planung" data-title="Projektplan aktualisieren">
+      <div class="grid">
+        <div class="content">
+          <div class="eyebrow">11:30–11:45 · Projektplan aktualisieren</div>
+          <h2>Projektplan aktualisieren</h2>
+          <p class="lead">Füllt den Projektplan erst jetzt aus. Achtet darauf, dass Thema, Frage und Produktform zusammenpassen.</p>
+          <div class="task-list">
+            <div class="task"><span class="check"></span><span class="task-text">Thema und Zukunftsfrage eintragen</span></div>
+            <div class="task"><span class="check"></span><span class="task-text">Produktform auswählen</span></div>
+            <div class="task"><span class="check"></span><span class="task-text">Planung für die nächsten Tage notieren</span></div>
+            <div class="task"><span class="check"></span><span class="task-text">Ausgefüllten Projektplan zum Fotografieren bereitlegen</span></div>
+          </div>
+        </div>
+        <div class="visual"><img class="click-zoom" src="assets/projektplan-gross.jpg" alt="Arbeitsblatt Mein Projektplan"></div>
+      </div>
+      <div class="notes"><b>Projektbegleiter-Hinweis:</b> Jetzt erst ausfüllen lassen. Beim Herumgehen prüfen, ob Thema, Frage und Produktform zusammenpassen. Am Ende die ausgefüllten Projektpläne fotografieren bzw. digital sichern.</div>
+    </section>
+
+    <section id="ideen" data-title="Zwischenstandsbericht">
+      <div class="eyebrow">11:45–12:00 · Zwischenstandsbericht</div>
+      <h2>Zwischenstandsbericht</h2>
+      <p class="lead">Im Plenum gibt jede Gruppe einen kurzen Zwischenstand: Welches Zukunftsthema bearbeitet ihr, und welches konkrete Problem habt ihr darin entdeckt?</p>
+      <div class="plenum-method" aria-label="Methode 1-Minuten-Zwischenstand">
+        <div>
+          <div class="method-title"><span>1</span> Methode: 1-Minuten-Zwischenstand</div>
+          <div class="method-flow">
+            <article class="method-step" data-icon="🎯"><b>Thema nennen</b><p>„Wir bearbeiten das Zukunftsthema …“</p></article>
+            <article class="method-step" data-icon="⚠️"><b>Problem erklären</b><p>„Das Problem für Menschen ist …“</p></article>
+            <article class="method-step" data-icon="🔎"><b>Frage schärfen</b><p>„Daraus könnte unsere Zukunftsfrage werden: …“</p></article>
+          </div>
+          <div class="method-note">Die anderen hören zu und achten darauf: Ist das Problem konkret genug? Betrifft es wirklich Menschen?</div>
+        </div>
+        <div class="plenum-board">
+          <b>So kommt ihr im Plenum dran</b>
+          <div class="board-line"><span>1</span> Gruppe steht kurz auf oder meldet sich.</div>
+          <div class="board-line"><span>2</span> Maximal eine Minute sprechen.</div>
+          <div class="board-line"><span>3</span> Eine Rückfrage oder ein Tipp aus dem Plenum.</div>
+          <div class="board-line"><span>4</span> Danach Projektplan gegebenenfalls nachschärfen.</div>
+        </div>
+      </div>
+      <div class="prompt">
+        <b>Wichtig:</b> Es geht noch nicht um ein fertiges Produkt. Erst muss klar sein, welches Thema und welches Problem wirklich bearbeitet werden.
+      </div>
+      <div class="notes"><b>Projektbegleiter-Hinweis:</b> Methode „1-Minuten-Zwischenstand“ nutzen. Jede Gruppe nennt Thema, konkretes Problem und mögliche Zukunftsfrage. Nach jedem Beitrag höchstens eine kurze Rückfrage zulassen, damit die 15 Minuten eingehalten werden. Bei zu allgemeinen Themen nachhaken: „Wen betrifft das?“ und „Was genau ist daran in Zukunft schwierig?“</div>
+    </section>
+
+    <section id="produkt" data-title="Produkt wählen">
+      <div class="grid">
+        <div class="content">
+          <div class="eyebrow">12:00–12:15 · Produktentscheidung</div>
+          <h2>Welche Form zeigt eure Idee am besten?</h2>
+          <p class="lead">Wählt nicht nur nach Lieblings-App. Entscheidet, ob eure Idee am besten durch Handlung, Gespräch, Bildfolge oder Erklärung verständlich wird.</p>
+          <div class="task-list">
+            <div class="task"><span class="check"></span><span class="task-text">Produktform passt zur Botschaft</span></div>
+            <div class="task"><span class="check"></span><span class="task-text">Mindestumfang ist realistisch</span></div>
+            <div class="task"><span class="check"></span><span class="task-text">Technik und Material sind verfügbar</span></div>
+          </div>
+        </div>
+        <div class="visual"><img class="click-zoom" src="assets/mindestumfang.jpg" alt="Mindestumfang der Produktformen"></div>
+      </div>
+      <div class="app-suggestions">
+        <b>Geeignete iPad-Apps</b>
+        <div class="app-grid">
+          <div class="app-chip"><i class="app-icon imovie">★</i><div><span>Film / Video</span>iMovie oder Clips</div></div>
+          <div class="app-chip"><i class="app-icon garage">🎙</i><div><span>Podcast / Hörspiel</span>GarageBand</div></div>
+          <div class="app-chip"><i class="app-icon keynote">▣</i><div><span>Präsentation</span>Keynote</div></div>
+          <div class="app-chip"><i class="app-icon pages">✎</i><div><span>Comic</span>Pages oder Canva</div></div>
+          <div class="app-chip"><i class="app-icon canva">C</i><div><span>Plakat / Ausstellung</span>Canva, Freeform oder Keynote</div></div>
+          <div class="app-chip"><i class="app-icon stopmotion">🎬</i><div><span>Stop-Motion</span>Stop Motion Studio</div></div>
+        </div>
+      </div>
+      <div class="notes"><b>Projektbegleiter-Hinweis:</b> Bei aufwendigem Film oder Stop-Motion kritisch nach Szenenzahl, Drehorten, Ton und Schnittzeit fragen.</div>
+    </section>
+
+    <section id="abschluss" class="finish" data-title="Abschluss">
+      <div class="eyebrow">12:15–12:20 · Check-out</div>
+      <h2>Montag geschafft.</h2>
+      <div class="next-day">
+        <img src="assets/dienstag-ausblick.png" alt="Ausblick Dienstag: Vertiefende Planung und Rohmaterialien">
+        <div class="next-day-card">
+          <b>Ausblick auf Dienstag</b>
+          <p>Aus eurer Idee wird ein genauer Plan mit Rohmaterial.</p>
+          <ul>
+            <li>Zukunftsproblem genauer erfassen</li>
+            <li>Lösungsmöglichkeiten skizzieren</li>
+            <li>Storyboard, Ablaufplan oder Gliederung erstellen</li>
+            <li>Texte, Bilder, Tonaufnahmen oder Filmszenen vorbereiten</li>
+            <li>Rollen in der Gruppe verteilen</li>
+          </ul>
+        </div>
+      </div>
+      <div class="hero-actions"><a class="btn secondary" href="#start">Zum Anfang</a></div>
+      <div class="notes"><b>Projektbegleiter-Hinweis:</b> Kurzes Daumenfeedback und ruhiger Abschluss des Vormittags.</div>
+    </section>
+  </main>
+
+  <dialog id="menu">
+    <div class="dialog-in">
+      <button class="close" id="closeMenu">✕</button>
+      <h3>Zum Abschnitt springen</h3>
+      <div class="jump-list" id="jumpList"></div>
+    </div>
+  </dialog>
+
+  <script>
+    const sections=[...document.querySelectorAll('section')];
+    const progress=document.getElementById('progress');
+    const side=document.getElementById('side');
+    const jumpList=document.getElementById('jumpList');
+
+    sections.forEach((s,i)=>{
+      const d=document.createElement('button');
+      d.className='dot';
+      d.title=s.dataset.title;
+      d.style.minHeight='44px';
+      d.style.minWidth='44px';
+      d.style.margin='-6px';
+      d.style.padding='10px';
+      d.style.background='transparent';
+      d.style.border='none';
+      d.style.borderRadius='50%';
+      d.style.display='grid';
+      d.style.placeItems='center';
+      const inner=document.createElement('span');
+      inner.className='dot-inner';
+      inner.style.display='block';
+      inner.style.width='18px';
+      inner.style.height='18px';
+      inner.style.border='2.5px solid var(--blue)';
+      inner.style.background='#fff';
+      inner.style.borderRadius='50%';
+      inner.style.transition='transform .15s,background .2s,border-color .2s';
+      d.append(inner);
+      side.append(d);
+      const b=document.createElement('button');
+      b.textContent=`${i+1}. ${s.dataset.title}`;
+      b.onclick=()=>{s.scrollIntoView();menu.close()};
+      jumpList.append(b);
+    });
+    const dots=[...side.children];
+
+    /* sanftes Einblenden beim Scrollen */
+    const revealObserver=new IntersectionObserver((entries)=>entries.forEach(e=>{
+      if(e.isIntersecting) e.target.classList.add('visible');
+    }),{threshold:.18});
+    sections.forEach(s=>revealObserver.observe(s));
+
+    const progressObserver=new IntersectionObserver(entries=>entries.forEach(e=>{
+      if(e.isIntersecting){
+        const i=sections.indexOf(e.target);
+        dots.forEach((d,j)=>d.querySelector('.dot-inner').classList.toggle('active',i===j));
+        progress.style.width=`${((i+1)/sections.length)*100}%`;
+      }
+    }),{threshold:.35});
+    sections.forEach(s=>progressObserver.observe(s));
+
+    document.querySelectorAll('.task').forEach(t=>t.addEventListener('click',()=>t.classList.toggle('done')));
+    document.querySelectorAll('.requirement').forEach(btn=>btn.addEventListener('click',()=>{
+      const box=btn.closest('section'),wasActive=btn.classList.contains('active');
+      const img=document.getElementById('anforderungsBild');
+      const example=document.getElementById('grundanforderungBeispiel');
+      box.querySelectorAll('.requirement').forEach(b=>b.classList.remove('active'));
+      box.querySelectorAll('.requirement-detail').forEach(d=>d.classList.remove('show'));
+      example?.classList.remove('show');
+      if(wasActive){img.src='assets/anforderungsprofil.jpg';img.classList.remove('focused');return}
+      btn.classList.add('active');
+      box.querySelector(`.requirement-detail[data-detail="${btn.dataset.detail}"]`)?.classList.add('show');
+      img.src=`assets/anforderung-${btn.dataset.detail}.png`;
+      img.classList.add('focused');
+      example?.classList.toggle('show',btn.dataset.detail==='1');
+    }));
+    document.getElementById('anforderungsBild')?.addEventListener('click',()=>{
+      document.getElementById('anforderungsZoom')?.classList.toggle('enlarged');
+    });
+    document.querySelectorAll('.click-zoom').forEach(img=>{
+      const visual=img.closest('.visual');
+      if(!visual) return;
+      img.addEventListener('click',()=>visual.classList.add('active'));
+      visual.addEventListener('click',(e)=>{
+        if(e.target===visual) visual.classList.remove('active');
+      });
+    });
+    document.querySelectorAll('.video-frame[data-video]').forEach(frame=>{
+      frame.querySelector('.video-poster')?.addEventListener('click',()=>{
+        frame.innerHTML=`<iframe src="${frame.dataset.video}" title="YouTube video player" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>`;
+      });
+    });
+
+    const quizData=[
+      {topic:'Schule',q:'Welches Zukunftsproblem könnte Schule besonders beschäftigen?',a:['Wie lernen Menschen fair, wenn KI sehr unterschiedlich genutzt wird?','Welche Kreidefarbe ist im Jahr 2050 am beliebtesten?','Wie viele Pausen braucht ein Roboter?','Warum sind Klassenzimmer immer rechteckig?'],c:0},
+      {topic:'Mobilität',q:'Welches konkrete Problem passt zum Zukunftsthema Mobilität?',a:['Wie kommen Menschen ohne Auto zuverlässig zum Arzt, zur Arbeit oder zu Freunden?','Welche Farbe haben fliegende Autos am häufigsten?','Warum heißen Fahrräder Fahrräder?','Wie viele Räder darf ein Bus maximal haben?'],c:0},
+      {topic:'Wohnen',q:'Welche Herausforderung könnte Wohnen in der Zukunft prägen?',a:['Wie bleibt Wohnraum bezahlbar, wenn Städte wachsen und Energie teuer wird?','Welche Sofafarbe ist am gemütlichsten?','Warum haben Häuser Türen?','Wie viele Zimmer braucht ein Hologramm?'],c:0},
+      {topic:'Gesundheit',q:'Welches Problem gehört zum Zukunftsthema Gesundheit?',a:['Wie bekommen alle Menschen gute medizinische Hilfe, auch wenn Personal fehlt?','Wie schmeckt Medizin besser als Süßigkeiten?','Welche Pflasterform sieht am besten aus?','Warum schlafen Krankenhäuser nachts nicht?'],c:0},
+      {topic:'Umwelt',q:'Welche Zukunftsfrage passt zum Thema Umwelt?',a:['Wie können Städte kühler werden, wenn Hitzewellen häufiger auftreten?','Welche Wolke sieht am schönsten aus?','Wie nennt man einen sehr kleinen Wald?','Warum ist Gras grün?'],c:0},
+      {topic:'Arbeit',q:'Welches Problem könnte die Arbeitswelt der Zukunft beschäftigen?',a:['Welche Aufgaben übernehmen Maschinen, und was bleibt sinnvolle Arbeit für Menschen?','Welche Tastatur klingt am besten?','Warum gibt es Montage?','Wie viele Meetings passen in einen Tag?'],c:0},
+      {topic:'KI',q:'Welche Herausforderung passt zum Thema künstliche Intelligenz?',a:['Wie erkennt man, ob eine KI-Information stimmt oder unfair ist?','Welche Stimme klingt am lustigsten?','Warum blinkt ein Computer manchmal?','Wie gibt man einem Chatbot einen Spitznamen?'],c:0},
+      {topic:'Ernährung',q:'Welches konkrete Problem passt zum Zukunftsthema Ernährung?',a:['Wie können alle gesund essen, obwohl Klima, Preise und Transport schwieriger werden?','Welche Pizzaform ist am modernsten?','Warum macht Essen satt?','Wie lang darf eine Nudel sein?'],c:0},
+      {topic:'Freizeit',q:'Welche Zukunftsfrage passt zum Thema Freizeit?',a:['Wie bleibt echte Begegnung möglich, wenn Freizeit immer digitaler wird?','Welches Spielzeug hat die schönste Verpackung?','Warum macht Spaß Spaß?','Wie viele Hobbys passen in eine App?'],c:0},
+      {topic:'Sicherheit',q:'Welches Problem könnte Sicherheit in Zukunft bedeuten?',a:['Wie schützt man Menschen und Daten, ohne alles zu überwachen?','Welche Uniformfarbe wirkt am freundlichsten?','Warum piept ein Alarm?','Wie schwer ist ein Passwort?'],c:0},
+      {topic:'Zusammenleben',q:'Welche Herausforderung gehört zum Zukunftsthema Zusammenleben?',a:['Wie können unterschiedliche Menschen gut miteinander leben, wenn Gesellschaften vielfältiger werden?','Welche Nachbarschaft hat die besten Klingeln?','Warum grüßt man sich?','Wie laut darf Zukunftsmusik sein?'],c:0},
+      {topic:'Medien',q:'Welches Problem passt zum Zukunftsthema Medien?',a:['Wie unterscheiden Menschen echte Nachrichten von Fakes, Bildern und KI-Inhalten?','Welche Schriftart liest sich im Weltall gut?','Warum gibt es Fernbedienungen?','Wie viele Likes sind schwer?'],c:0}
+    ];
+    let quizIndex=0,quizScoreValue=0,quizAnswered=false;
+
+    function hideQuizActions(hide){
+ const actions=document.getElementById('quizActions');
+      if(actions) actions.style.display=hide?'none':'';
+    }
+
+    function renderQuizStart(){
+      const q=document.getElementById('quizQuestion'),opts=document.getElementById('quizOptions'),fb=document.getElementById('quizFeedback'),count=document.getElementById('quizCount'),score=document.getElementById('quizScore');
+      if(!q||!opts) return;
+      quizIndex=0;quizScoreValue=0;quizAnswered=false;
+      count.textContent='12 Fragen';
+      q.innerHTML='<div class="quiz-start"><b>Millionenfrage der Zukunft</b><p>Teste dein Gespür für echte Zukunftsprobleme. Wähle aus vier Antworten die eine aus, die ein konkretes Problem für Menschen beschreibt.</p></div>';
+      opts.innerHTML='<button class="quiz-option" id="quizStartBtn" style="grid-column:1/-1;text-align:center;font-size:1.15rem;padding:16px;">Quiz starten</button>';
+      fb.textContent='';
+      score.textContent='';
+      hideQuizActions(true);
+
+      document.getElementById('quizStartBtn').onclick=()=>renderQuiz();
+    }
+
+    function renderQuiz(){
+      const item=quizData[quizIndex];
+      const q=document.getElementById('quizQuestion'),opts=document.getElementById('quizOptions'),fb=document.getElementById('quizFeedback'),count=document.getElementById('quizCount'),score=document.getElementById('quizScore');
+      if(!q||!opts) return;
+      quizAnswered=false;
+      hideQuizActions(false);
+      q.textContent=`${item.topic}: ${item.q}`;
+      count.textContent=`Frage ${quizIndex+1}/12`;
+      score.textContent=`Punkte: ${quizScoreValue}`;
+      fb.textContent='';
+      opts.innerHTML='';
+      item.a.map((answer,i)=>({answer,correct:i===item.c})).sort(()=>Math.random()-.5).forEach(choice=>{
+        const b=document.createElement('button');
+        b.className='quiz-option';
+        b.textContent=choice.answer;
+        b.type='button';
+        b.onclick=()=>{
+          if(quizAnswered) return;
+          quizAnswered=true;
+          opts.querySelectorAll('button').forEach(btn=>btn.classList.toggle('correct',btn.textContent===item.a[item.c]));
+          if(!choice.correct) b.classList.add('wrong');
+          if(choice.correct){quizScoreValue++;fb.textContent='Richtig. Das ist ein echtes Zukunftsproblem.'}
+          else fb.textContent='Noch nicht. Gesucht war ein konkretes Problem für Menschen.';
+          score.textContent=`Punkte: ${quizScoreValue}`;
+        };
+        opts.append(b);
+      });
+    }
+
+    function renderQuizEnd(){
+      const q=document.getElementById('quizQuestion'),opts=document.getElementById('quizOptions'),fb=document.getElementById('quizFeedback'),count=document.getElementById('quizCount'),score=document.getElementById('quizScore');
+      count.textContent='Quiz geschafft';
+      q.textContent='Finale Frage an dein Zukunfts-Ich:';
+      hideQuizActions(true);
+      opts.innerHTML='<div class="quiz-finale">„Genug geraten. Jetzt braucht die Zukunft einen Plan mit Hirn.“<small>Such dir nun ein Thema, bei dem Menschen wirklich ein Problem haben – und formuliere daraus deine Zukunftsfrage.</small></div><button class="quiz-option" id="quizBackToStart" style="grid-column:1/-1;text-align:center;font-size:1.1rem;padding:15px;margin-top:12px;background:var(--gold);color:var(--navy);border:none;font-weight:900;">Zurück zum Start</button>';
+      fb.textContent='';
+      score.textContent=`Endstand: ${quizScoreValue}/12`;
+
+ document.getElementById('quizBackToStart').onclick=()=>renderQuizStart();
+    }
+
+    document.getElementById('quizNext')?.addEventListener('click',()=>{
+      if(quizIndex>=quizData.length-1){renderQuizEnd();return}
+      quizIndex++;
+      renderQuiz();
+    });
+
+    document.getElementById('quizReset')?.addEventListener('click',()=>{
+      quizIndex=0;quizScoreValue=0;renderQuizStart();
+    });
+
+    document.getElementById('themeQuiz')?.addEventListener('click',e=>{
+      e.stopPropagation();
+      document.getElementById('themeQuiz')?.classList.add('focused');
+    });
+    document.addEventListener('click',e=>{
+      const quiz=document.getElementById('themeQuiz');
+      if(quiz && !quiz.contains(e.target)) quiz.classList.remove('focused');
+    });
+
+    const comicPages=['assets/comic/zukunftscomic-1.jpg','assets/comic/zukunftscomic-2.jpg','assets/comic/zukunftscomic-3.jpg'];
+    let comicIndex=0;
+    function renderComic(){const img=document.getElementById('comicImage'),count=document.getElementById('comicCount');if(!img||!count)return;img.src=comicPages[comicIndex];img.alt=`Zukunftscomic Seite ${comicIndex+1}`;count.textContent=`Seite ${comicIndex+1} / ${comicPages.length}`}
+    document.getElementById('comicPrev')?.addEventListener('click',()=>{comicIndex=(comicIndex-1+comicPages.length)%comicPages.length;renderComic()});
+    document.getElementById('comicNext')?.addEventListener('click',()=>{comicIndex=(comicIndex+1)%comicPages.length;renderComic()});
+    renderComic();
+    renderQuizStart();
+
+    document.getElementById('nextArrow').addEventListener('click',()=>{
+      const current=dots.findIndex(d=>d.querySelector('.dot-inner').classList.contains('active'));
+      const next=current+1;
+      if(next<sections.length){
+        sections[next].scrollIntoView({behavior:'smooth'});
+      }else{
+        sections[0].scrollIntoView({behavior:'smooth'});
+      }
+    });
+
+    const menu=document.getElementById('menu');
+    document.getElementById('openMenu').onclick=()=>menu.showModal();
+    document.getElementById('closeMenu').onclick=()=>menu.close();
+    document.getElementById('speaker').onclick=()=>document.body.classList.toggle('show-notes');
+
+    function toggleFullscreen(){
+      if(!document.fullscreenElement) document.documentElement.requestFullscreen?.();
+      else document.exitFullscreen?.();
+    }
+
+    function wireTimer(box){
+      const RADIUS=54;
+      const CIRCUMFERENCE=2*Math.PI*RADIUS;
+      let seconds=parseInt(box.querySelector('.timer').textContent)*60,initial=seconds,run=false,handle;
+      const out=box.querySelector('.timer');
+      const ring=box.querySelector('.timer-ring-fill');
+      if(ring){
+        ring.style.strokeDasharray=`${CIRCUMFERENCE} ${CIRCUMFERENCE}`;
+        ring.style.strokeDashoffset=0;
+      }
+      function updateRing(){
+        if(!ring||initial<=0) return;
+        const pct=seconds/initial;
+        ring.style.strokeDashoffset=CIRCUMFERENCE*(1-pct);
+      }
+      const paint=()=>{
+        out.textContent=`${String(Math.floor(seconds/60)).padStart(2,'0')}:${String(seconds%60).padStart(2,'0')}`;
+        updateRing();
+      };
+      box.querySelectorAll('[data-min]').forEach(b=>b.onclick=()=>{
+        seconds=initial=Number(b.dataset.min)*60;run=false;clearInterval(handle);paint();
+        out.style.color='';
+      });
+      const start=box.querySelector('.timer-start,.localStart'),reset=box.querySelector('.timer-reset,.localReset');
+      if(start) start.onclick=()=>{
+        run=!run;clearInterval(handle);
+        if(run) handle=setInterval(()=>{
+          if(seconds>0){seconds--;paint()}
+          else{run=false;clearInterval(handle);out.style.color='#ffd05a'}
+        },1000);
+      };
+      if(reset) reset.onclick=()=>{run=false;clearInterval(handle);seconds=initial;out.style.color='';paint()};
+    }
+    document.querySelectorAll('.timerbox').forEach(wireTimer);
+
+    document.addEventListener('keydown',e=>{
+      if(['ArrowDown','ArrowRight','PageDown'].includes(e.key)){
+        e.preventDefault();
+        const current=dots.findIndex(d=>d.querySelector('.dot-inner').classList.contains('active'));
+        sections[Math.min(current+1,sections.length-1)].scrollIntoView({behavior:'smooth'});
+      }
+      if(['ArrowUp','ArrowLeft','PageUp'].includes(e.key)){
+        e.preventDefault();
+        const current=dots.findIndex(d=>d.querySelector('.dot-inner').classList.contains('active'));
+        sections[Math.max(current-1,0)].scrollIntoView({behavior:'smooth'});
+      }
+      if(e.key==='Escape'){
+        document.querySelectorAll('.image-enlarged,.enlarged,.focused').forEach(el=>el.classList.remove('image-enlarged','enlarged','focused'));
+      }
+      if(e.key==='f') toggleFullscreen();
+      if(e.key==='n') document.body.classList.toggle('show-notes');
+    });
+  </script>
+</body>
+</html>
